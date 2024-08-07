@@ -4,10 +4,7 @@ import tensorflow as tf
 
 # Load pre-trained models
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-model = tf.keras.applications.MobileNetV2(weights='imagenet', include_top=True)
-
-# Labels for the ImageNet classes
-LABELS = {int(key): value for (key, value) in tf.keras.applications.mobilenet_v2.decode_predictions(np.expand_dims(np.arange(1000), axis=0), top=1000)[0]}
+model = tf.keras.applications.MobileNetV2(weights='imagenet')
 
 def detect_faces(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -23,11 +20,11 @@ def detect_objects(frame):
 
     predictions = model.predict(input_frame)
     top_predictions = tf.keras.applications.mobilenet_v2.decode_predictions(predictions, top=3)[0]
-    
+
     for i, (imagenet_id, label, score) in enumerate(top_predictions):
         label_text = f"{label}: {score:.2f}"
         cv2.putText(frame, label_text, (10, 30 + i * 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-    
+
     return frame
 
 def main():
