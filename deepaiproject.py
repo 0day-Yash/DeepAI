@@ -3,8 +3,11 @@ import numpy as np
 import tensorflow as tf
 
 # Load pre-trained models
+print("Loading face cascade...")
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+print("Loading MobileNetV2 model...")
 model = tf.keras.applications.MobileNetV2(weights='imagenet')
+print("Models loaded successfully.")
 
 def detect_faces(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -28,8 +31,14 @@ def detect_objects(frame):
     return frame
 
 def main():
+    print("Starting video capture...")
     cap = cv2.VideoCapture(0)
 
+    if not cap.isOpened():
+        print("Error: Could not open video device.")
+        return
+
+    print("Video capture started.")
     while True:
         ret, frame = cap.read()
         if not ret:
