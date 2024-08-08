@@ -20,7 +20,7 @@ This project demonstrates real-time face and object detection using a webcam. It
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/face-object-detection.git
+git clone https://github.com/0day-Yash/face-object-detection.git
 cd face-object-detection
 ```
 
