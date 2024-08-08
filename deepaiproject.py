@@ -1,13 +1,13 @@
 import cv2
 import numpy as np
 import tensorflow as tf
+import tensorflow_hub as hub
 
 # Load pre-trained models
 print("Loading face cascade...")
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-print("Loading MobileNetV2 model...")
-model = tf.keras.applications.MobileNetV2(weights='imagenet')
-print("Models loaded successfully.")
+print("Loading EfficientDet model...")
+detector = hub.load("https://tfhub.dev/tensorflow/efficientdet/d0/1")
 
 def detect_faces(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -17,16 +17,23 @@ def detect_faces(frame):
     return frame
 
 def detect_objects(frame):
-    input_frame = cv2.resize(frame, (224, 224))
+    input_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    input_frame = cv2.resize(input_frame, (512, 512))
     input_frame = np.expand_dims(input_frame, axis=0)
-    input_frame = tf.keras.applications.mobilenet_v2.preprocess_input(input_frame)
+    
+    detector_output = detector(input_frame)
+    boxes = detector_output['detection_boxes'].numpy()
+    class_ids = detector_output['detection_classes'].numpy().astype(np.int32)
+    scores = detector_output['detection_scores'].numpy()
 
-    predictions = model.predict(input_frame)
-    top_predictions = tf.keras.applications.mobilenet_v2.decode_predictions(predictions, top=3)[0]
-
-    for i, (imagenet_id, label, score) in enumerate(top_predictions):
-        label_text = f"{label}: {score:.2f}"
-        cv2.putText(frame, label_text, (10, 30 + i * 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    h, w, _ = frame.shape
+    for box, class_id, score in zip(boxes, class_ids, scores):
+        if score.any() > 0.3:
+            ymin, xmin, ymax, xmax = box
+            xmin, xmax, ymin, ymax = int(xmin * w), int(xmax * w), int(ymin * h), int(ymax * h)
+            cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
+            label = f"{class_id}: {score:.2f}"
+            cv2.putText(frame, label, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
     return frame
 
