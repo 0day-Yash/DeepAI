@@ -20,19 +20,19 @@ def detect_objects(frame):
     input_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     input_frame = cv2.resize(input_frame, (512, 512))
     input_frame = np.expand_dims(input_frame, axis=0)
-    
+
     detector_output = detector(input_frame)
-    boxes = detector_output['detection_boxes'].numpy()
-    class_ids = detector_output['detection_classes'].numpy().astype(np.int32)
-    scores = detector_output['detection_scores'].numpy()
+    boxes = detector_output['detection_boxes'][0].numpy()
+    class_ids = detector_output['detection_classes'][0].numpy().astype(np.int32)
+    scores = detector_output['detection_scores'][0].numpy()
 
     h, w, _ = frame.shape
     for box, class_id, score in zip(boxes, class_ids, scores):
         if score > 0.3:
-            ymin, xmin, ymax, xmax = box[:4]  # Ensure we only unpack the first four values
+            ymin, xmin, ymax, xmax = box
             xmin, xmax, ymin, ymax = int(xmin * w), int(xmax * w), int(ymin * h), int(ymax * h)
             cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
-            label = f"{class_id}: {score:.2f}"
+            label = f"Class {class_id}: {score:.2f}"
             cv2.putText(frame, label, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
     return frame
