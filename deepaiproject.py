@@ -28,8 +28,8 @@ def detect_objects(frame):
 
     h, w, _ = frame.shape
     for box, class_id, score in zip(boxes, class_ids, scores):
-        if score.any() > 0.3:
-            ymin, xmin, ymax, xmax = box
+        if score > 0.3:
+            ymin, xmin, ymax, xmax = box[:4]  # Ensure we only unpack the first four values
             xmin, xmax, ymin, ymax = int(xmin * w), int(xmax * w), int(ymin * h), int(ymax * h)
             cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
             label = f"{class_id}: {score:.2f}"
